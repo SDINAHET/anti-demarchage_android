@@ -18,6 +18,8 @@ public class MainActivity extends Activity {
  private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton, notificationDetail, mainToggleButton;
  private LinearLayout root;
  private Switch notificationSwitch;
+ private AlertDialog protectionDialog;
+ AlertDialog getProtectionDialog(){return protectionDialog;}
  private final int ORANGE=Color.rgb(237,111,19), INK=Color.rgb(35,40,47), MUTED=Color.rgb(101,109,119);
  private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+0.5f);}
  private GradientDrawable shape(int color,int radius){
@@ -98,7 +100,7 @@ public class MainActivity extends Activity {
   mainToggleButton.setPadding(dp(16),dp(15),dp(16),dp(15));
   mainToggleButton.setOnClickListener(v->{
    if(prefs.getBoolean("enabled",true)){
-    new AlertDialog.Builder(this).setTitle("Désactiver la protection ?")
+    protectionDialog=new AlertDialog.Builder(this).setTitle("Désactiver la protection ?")
      .setMessage("Les appels de démarchage ne seront plus bloqués par cette application. Vos réglages seront conservés.")
      .setNegativeButton("Annuler",null).setPositiveButton("Désactiver",(dialog,which)->{prefs.edit().putBoolean("enabled",false).apply();refresh();}).show();
    }else{prefs.edit().putBoolean("enabled",true).apply();refresh();}
