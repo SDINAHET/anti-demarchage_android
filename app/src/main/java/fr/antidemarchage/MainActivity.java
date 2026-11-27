@@ -16,7 +16,7 @@ public class MainActivity extends Activity {
   ScrollView scroll=new ScrollView(this); LinearLayout root=new LinearLayout(this);
   root.setOrientation(LinearLayout.VERTICAL); int pad=(int)(24*getResources().getDisplayMetrics().density); root.setPadding(pad,pad*2,pad,pad);
   scroll.setFitsSystemWindows(true); scroll.addView(root); setContentView(scroll);
-  TextView title=new TextView(this); title.setText("AntiDémarchage"); title.setTextSize(28); root.addView(title);
+  TextView title=new TextView(this); title.setText("Dinahet AntiDémarchage"); title.setTextSize(28); root.addView(title);
   status=new TextView(this); status.setTextSize(18); root.addView(status);
   button(root,"Activer le rôle de filtrage",()->{if(roles.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING),1);});
   toggle(root,"Protection automatique","enabled");
@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
   if(Build.VERSION.SDK_INT>=33) button(root,"Autoriser les notifications",()->requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},2));
   TextView info=new TextView(this); info.setText("Préfixes filtrés — certains appels légitimes peuvent être concernés."); root.addView(info);
   for(String p:PrefixFilter.PREFIXES) toggle(root,p.substring(0,2)+" "+p.substring(2),p);
-  button(root,"Masquer le raccourci",()->new AlertDialog.Builder(this).setTitle("Masquer l’icône ?").setMessage("Pour rouvrir l’application, toucher une notification de blocage. Pour arrêter le filtre, utiliser les paramètres Android.").setNegativeButton("Annuler",null).setPositiveButton("Masquer",(d,w)->alias(false)).show());
+  button(root,"Masquer le raccourci (avancé)",()->new AlertDialog.Builder(this).setTitle("Attention : accès à l’application").setMessage("Si aucune notification de blocage n’arrive, tu pourrais ne plus pouvoir rouvrir facilement la configuration. Teste d’abord le filtrage sur ton téléphone. Tu pourras réactiver le raccourci via ADB ou réinstaller l’application.").setNegativeButton("Annuler",null).setPositiveButton("Masquer quand même",(d,w)->alias(false)).show());
   button(root,"Afficher le raccourci",()->alias(true));
   button(root,"Paramètres Android",()->startActivity(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:"+getPackageName()))));
  }
