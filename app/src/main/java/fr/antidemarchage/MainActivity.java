@@ -15,7 +15,7 @@ import android.widget.*;
 public class MainActivity extends Activity {
  private SharedPreferences prefs;
  private RoleManager roles;
- private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton;
+ private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton, notificationDetail;
  private LinearLayout root;
  private final int ORANGE=Color.rgb(237,111,19), INK=Color.rgb(35,40,47), MUTED=Color.rgb(101,109,119);
  private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+0.5f);}
@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
  }
  private void gap(LinearLayout l,int height){View v=new View(this);l.addView(v,new LinearLayout.LayoutParams(1,dp(height)));}
  private LinearLayout card(){
-  LinearLayout l=vertical();l.setPadding(dp(18),dp(17),dp(18),dp(17));
+  LinearLayout l=vertical();l.setPadding(dp(18),dp(14),dp(18),dp(14));
   l.setBackground(shape(Color.WHITE,18));root.addView(l,new LinearLayout.LayoutParams(-1,-2));gap(root,12);return l;
  }
  private void button(LinearLayout parent,String label,Runnable action){
@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
   parent.addView(b,new LinearLayout.LayoutParams(-1,-2));gap(parent,8);
  }
  private Switch switchRow(LinearLayout parent,String label,String key){
-  LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(0,dp(9),0,dp(9));
+  LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(0,dp(5),0,dp(5));
   TextView name=text(label,15,INK,false);row.addView(name,new LinearLayout.LayoutParams(0,-2,1));
   Switch s=new Switch(this);
   s.setChecked(prefs.getBoolean(key,true));
@@ -76,14 +76,14 @@ public class MainActivity extends Activity {
   getWindow().setStatusBarColor(0xFFF7F8FA);getWindow().setNavigationBarColor(0xFFF7F8FA);
   getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
   ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);
-  root=vertical();root.setPadding(dp(18),dp(22),dp(18),dp(24));root.setBackgroundColor(0xFFF7F8FA);
+  root=vertical();root.setPadding(dp(18),dp(12),dp(18),dp(20));root.setBackgroundColor(0xFFF7F8FA);
   scroll.addView(root);setContentView(scroll);
   LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
   TextView logo=text("☎",26,Color.WHITE,true);logo.setGravity(Gravity.CENTER);logo.setBackground(shape(ORANGE,14));
   header.addView(logo,new LinearLayout.LayoutParams(dp(48),dp(48)));
   LinearLayout heading=vertical();heading.setPadding(dp(12),0,0,0);
   heading.addView(text("AntiDémarchage",23,INK,true));heading.addView(text("Dinahet · Protection des appels",12,MUTED,false));
-  header.addView(heading);root.addView(header);gap(root,20);
+  header.addView(heading);root.addView(header);gap(root,14);
   LinearLayout overview=card();
   protectionTitle=text("",19,INK,true);overview.addView(protectionTitle);
   protectionDetail=text("",13,MUTED,false);overview.addView(protectionDetail);gap(overview,14);
@@ -103,7 +103,8 @@ public class MainActivity extends Activity {
   permissions.addView(roleButton);
   LinearLayout settings=card();settings.addView(text("Protection",17,INK,true));gap(settings,6);
   switchRow(settings,"Protection automatique","enabled");
-  switchRow(settings,"Notifications silencieuses","notifications");
+  switchRow(settings,"Afficher les appels bloqués en notification","notifications");
+  notificationDetail=text("",12,MUTED,false);settings.addView(notificationDetail);
   gap(settings,8);
   notificationButton=text("",14,INK,true);notificationButton.setGravity(Gravity.CENTER);
   notificationButton.setPadding(dp(12),dp(15),dp(12),dp(15));notificationButton.setBackground(shape(0xFFF3F4F6,12));
@@ -173,7 +174,10 @@ public class MainActivity extends Activity {
   protectionTitle.setText(granted&&enabled?"Protection active":"Protection inactive");
   protectionDetail.setText(!granted?"Autorisation de filtrage Android nécessaire":enabled?"Filtrage des appels entrants autorisé":"Protection désactivée dans l'application");
   roleButton.setText(granted?"✓ Rôle de filtrage autorisé — détails":"Activer le rôle de filtrage");
-  if(notificationButton!=null)notificationButton.setText(notificationsAllowed()?"✓ Notifications autorisées — paramètres":"Autoriser les notifications");
+  boolean systemNotifications=notificationsAllowed();
+  boolean appNotifications=prefs.getBoolean("notifications",true);
+  if(notificationButton!=null)notificationButton.setText(systemNotifications?"✓ Autorisation Android accordée — réglages":"Autoriser les notifications dans Android");
+  if(notificationDetail!=null)notificationDetail.setText(!appNotifications?"Notifications de blocage désactivées dans l’application. Les appels restent filtrés.":!systemNotifications?"Notifications de blocage activées dans l’application, mais bloquées par Android.":"Notifications de blocage activées et autorisées par Android (sans son ni vibration).");
   if(shortcutButton!=null)shortcutButton.setText(shortcutVisible()?"✓ Raccourci activé — vérifier":"Afficher le raccourci");
   countText.setText(String.valueOf(prefs.getInt("count",0)));
   int n=0;for(String p:PrefixFilter.PREFIXES)if(prefs.getBoolean(p,true))n++;
