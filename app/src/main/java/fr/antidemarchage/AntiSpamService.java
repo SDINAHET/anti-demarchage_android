@@ -14,7 +14,9 @@ public class AntiSpamService extends CallScreeningService {
    raw=d.getHandle()==null?"":d.getHandle().getSchemeSpecificPart();
    prefs=getSharedPreferences("filter",MODE_PRIVATE);
    final android.content.SharedPreferences currentPrefs=prefs;
-   ScreeningPolicy.Result decision=ScreeningPolicy.evaluate(raw,currentPrefs.getBoolean("enabled",true),prefix->currentPrefs.getBoolean(prefix,true));
+   ScreeningPolicy.Result decision=ScreeningPolicy.evaluate(raw,currentPrefs.getBoolean("enabled",true),prefix->currentPrefs.getBoolean(prefix,true),
+    n->currentPrefs.getBoolean("blacklist_enabled",true)&&currentPrefs.getBoolean("black:"+n,false),
+    n->currentPrefs.getBoolean("white:"+n,false));
    p=decision.prefix;
    block=decision.blocked;
   } catch(RuntimeException ignored) { block=false; }
@@ -32,7 +34,7 @@ public class AntiSpamService extends CallScreeningService {
    Intent i=new Intent(this,MainActivity.class);
    PendingIntent pi=PendingIntent.getActivity(this,0,i,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
    Notification n=new Notification.Builder(this,CHANNEL).setSmallIcon(R.drawable.shield)
-    .setContentTitle("Appel de démarchage bloqué").setContentText(PrefixFilter.normalize(raw)+" • Préfixe "+p)
+    .setContentTitle("Appel bloqué").setContentText(PrefixFilter.normalize(raw)+" • "+("Liste noire".equals(p)?p:"Préfixe "+p))
     .setVisibility(Notification.VISIBILITY_PRIVATE).setContentIntent(pi).setAutoCancel(true).build();
    nm.notify(1001,n);
   } catch(SecurityException ignored) {}
