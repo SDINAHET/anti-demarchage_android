@@ -13,13 +13,14 @@ public class AntiSpamService extends CallScreeningService {
   try {
    raw=d.getHandle()==null?"":d.getHandle().getSchemeSpecificPart();
    prefs=getSharedPreferences("filter",MODE_PRIVATE);
-   final android.content.SharedPreferences currentPrefs=prefs;
-   ScreeningPolicy.Result decision=ScreeningPolicy.evaluate(raw,currentPrefs.getBoolean("enabled",true),prefix->currentPrefs.getBoolean(prefix,true),
-    n->currentPrefs.getBoolean("blacklist_enabled",true)&&currentPrefs.getBoolean("black:"+n,false),
-    n->currentPrefs.getBoolean("white:"+n,false));
+   final java.util.Map<String,?> settings=prefs.getAll();
+   ScreeningPolicy.Result decision=ScreeningPolicy.evaluate(raw,!Boolean.FALSE.equals(settings.get("enabled")),prefix->!Boolean.FALSE.equals(settings.get(prefix)),
+    n->!Boolean.FALSE.equals(settings.get("blacklist_enabled"))&&Boolean.TRUE.equals(settings.get("black:"+n)),
+    n->Boolean.TRUE.equals(settings.get("white:"+n)));
    p=decision.prefix;
    block=decision.blocked;
-  } catch(RuntimeException ignored) { block=false; }
+  } catch(RuntimeException ignored) { block=false; android.util.Log.w("AntiSpamScreening","Decision error; allowing call"); }
+  android.util.Log.i("AntiSpamScreening",block?"BLOCK: "+p:"ALLOW");
   respondToCall(d,new CallResponse.Builder().setDisallowCall(block).setRejectCall(block).setSkipNotification(block).setSkipCallLog(false).build());
   if(block) {
    prefs.edit().putInt("count",prefs.getInt("count",0)+1).apply();
