@@ -12,3 +12,11 @@ Android 10 minimum. Le rôle CALL_SCREENING est distinct du téléphone par déf
 APK debug pour essais uniquement. Pour mises à jour fiables, configurer une clé de signature release persistante, stockée hors du dépôt. Les clés debug CI peuvent changer entre builds.
 ## Vie privée
 Pas de permission Internet, contacts, SMS ou journal d'appels. Compteur et préférences locaux. Le numéro bloqué est affiché dans la notification privée ; le système peut conserver son journal d'appels.
+
+## Vérifications avant usage quotidien
+- Le code du filtre Java a passé 56 vérifications autonomes locales. Cela ne remplace ni les tests Gradle ni les essais Android.
+- Attendre une compilation APK réussie et des tests unitaires Android verts.
+- Tester d'abord l'application avec le rôle de filtrage désactivé puis activé, et garder l'icône visible.
+- Pour vérifier le rejet réel, utiliser une ligne de test autorisée et une plage de préfixes contrôlée; ne jamais simuler un numéro officiel ou d'urgence.
+- Tester les appels entrants inconnus, les appels sortants et les appels vers les secours (sans passer d'appel réel aux secours pour un test).
+- La protection des rappels de secours ne peut être garantie à 100 % avec un simple filtre par préfixe.
