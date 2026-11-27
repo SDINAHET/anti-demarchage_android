@@ -21,6 +21,7 @@ public class MainActivity extends Activity {
   button(root,"Activer le rôle de filtrage",()->{if(roles.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING),1);});
   toggle(root,"Protection automatique","enabled");
   toggle(root,"Notifications silencieuses","notifications");
+  button(root,"Tester un appel fictif (sans appel réel)",()->startActivity(new Intent(this,SimulatorActivity.class)));
   if(Build.VERSION.SDK_INT>=33) button(root,"Autoriser les notifications",()->requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},2));
   TextView info=new TextView(this); info.setText("Préfixes filtrés — certains appels légitimes peuvent être concernés."); root.addView(info);
   for(String p:PrefixFilter.PREFIXES) toggle(root,p.substring(0,2)+" "+p.substring(2),p);
