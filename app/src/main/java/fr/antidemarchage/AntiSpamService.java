@@ -12,9 +12,11 @@ public class AntiSpamService extends CallScreeningService {
   android.content.SharedPreferences prefs=null;
   try {
    raw=d.getHandle()==null?"":d.getHandle().getSchemeSpecificPart();
-   p=PrefixFilter.match(raw);
    prefs=getSharedPreferences("filter",MODE_PRIVATE);
-   block=prefs.getBoolean("enabled",true)&&!p.isEmpty()&&prefs.getBoolean(p,true);
+   final android.content.SharedPreferences currentPrefs=prefs;
+   ScreeningPolicy.Result decision=ScreeningPolicy.evaluate(raw,currentPrefs.getBoolean("enabled",true),prefix->currentPrefs.getBoolean(prefix,true));
+   p=decision.prefix;
+   block=decision.blocked;
   } catch(RuntimeException ignored) { block=false; }
   respondToCall(d,new CallResponse.Builder().setDisallowCall(block).setRejectCall(block).setSkipNotification(block).setSkipCallLog(false).build());
   if(block) {
