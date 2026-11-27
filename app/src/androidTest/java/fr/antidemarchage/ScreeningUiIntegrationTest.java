@@ -41,7 +41,7 @@ public class ScreeningUiIntegrationTest {
     assertNotNull(findText(root,"France métropolitaine"));
     assertNotNull(findText(root,"Outre-mer"));
     assertNotNull(findSwitch(root,"Protection automatique"));
-    assertNotNull(findSwitch(root,"Notifications silencieuses"));
+    assertNotNull(findSwitch(root,"Afficher les appels bloqués en notification"));
    });
   }
  }
