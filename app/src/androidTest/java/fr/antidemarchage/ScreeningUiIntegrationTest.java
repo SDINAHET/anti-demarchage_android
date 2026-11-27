@@ -41,7 +41,7 @@ public class ScreeningUiIntegrationTest {
     assertNotNull(findText(root,"France métropolitaine"));
     assertNotNull(findText(root,"Outre-mer"));
     assertNotNull(findText(root,"DÉSACTIVER LA PROTECTION")!=null?findText(root,"DÉSACTIVER LA PROTECTION"):findText(root,"ACTIVER LA PROTECTION"));
-    assertNotNull(findSwitch(root,"Afficher les appels bloqués en notification"));
+    assertNotNull(findSwitch(root,"Notifications des appels bloqués"));
    });
   }
  }
@@ -54,6 +54,15 @@ public class ScreeningUiIntegrationTest {
     View root=activity.findViewById(android.R.id.content);
     TextView button=findText(root,old?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION");
     assertNotNull(button);button.performClick();
+    if(old)assertTrue(prefs.getBoolean("enabled",true));
+   });
+   if(old){
+    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Annuler")).perform(androidx.test.espresso.action.ViewActions.click());
+    assertTrue(prefs.getBoolean("enabled",true));
+    scenario.onActivity(activity->findText(activity.findViewById(android.R.id.content),"DÉSACTIVER LA PROTECTION").performClick());
+    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Désactiver")).perform(androidx.test.espresso.action.ViewActions.click());
+   }
+   scenario.onActivity(activity->{
     assertEquals(!old,prefs.getBoolean("enabled",old));
    });
    scenario.recreate();
