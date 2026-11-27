@@ -7,11 +7,16 @@ public class AntiSpamService extends CallScreeningService {
  public static final String CHANNEL="blocked_calls";
  @Override public void onScreenCall(Call.Details d) {
   if(d.getCallDirection()!=Call.Details.DIRECTION_INCOMING) return;
-  String raw=d.getHandle()==null?"":d.getHandle().getSchemeSpecificPart();
-  String p=PrefixFilter.match(raw);
-  android.content.SharedPreferences prefs=getSharedPreferences("filter",MODE_PRIVATE);
-  boolean block=prefs.getBoolean("enabled",true)&&!p.isEmpty()&&prefs.getBoolean(p,true);
-  respondToCall(d,new CallResponse.Builder().setDisallowCall(block).setRejectCall(block).setSkipNotification(block).build());
+  String raw="", p="";
+  boolean block=false;
+  android.content.SharedPreferences prefs=null;
+  try {
+   raw=d.getHandle()==null?"":d.getHandle().getSchemeSpecificPart();
+   p=PrefixFilter.match(raw);
+   prefs=getSharedPreferences("filter",MODE_PRIVATE);
+   block=prefs.getBoolean("enabled",true)&&!p.isEmpty()&&prefs.getBoolean(p,true);
+  } catch(RuntimeException ignored) { block=false; }
+  respondToCall(d,new CallResponse.Builder().setDisallowCall(block).setRejectCall(block).setSkipNotification(block).setSkipCallLog(false).build());
   if(block) {
    prefs.edit().putInt("count",prefs.getInt("count",0)+1).apply();
    if(prefs.getBoolean("notifications",true)) notifyBlocked(raw,p);
@@ -21,7 +26,7 @@ public class AntiSpamService extends CallScreeningService {
   try {
    NotificationManager nm=getSystemService(NotificationManager.class);
    NotificationChannel c=new NotificationChannel(CHANNEL,"Appels bloqués",NotificationManager.IMPORTANCE_LOW);
-   c.setSound(null,null); nm.createNotificationChannel(c);
+   c.setSound(null,null); c.enableVibration(false); nm.createNotificationChannel(c);
    Intent i=new Intent(this,MainActivity.class);
    PendingIntent pi=PendingIntent.getActivity(this,0,i,PendingIntent.FLAG_IMMUTABLE|PendingIntent.FLAG_UPDATE_CURRENT);
    Notification n=new Notification.Builder(this,CHANNEL).setSmallIcon(R.drawable.shield)
