@@ -13,7 +13,7 @@ public final class PrefixFilter {
  );
 
  public static String normalize(String raw) {
-  if(raw==null) return "";
+  if(raw==null || raw.indexOf('\n')>=0 || raw.indexOf('\r')>=0) return "";
   String n=raw.replaceAll("[\\s.()\\-]", "");
   if(n.startsWith("+33")) n="0"+n.substring(3);
   else if(n.startsWith("0033")) n="0"+n.substring(4);
