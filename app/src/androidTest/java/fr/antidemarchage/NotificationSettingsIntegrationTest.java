@@ -39,9 +39,10 @@ public class NotificationSettingsIntegrationTest {
   try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
    scenario.onActivity(activity->{
     View root=activity.findViewById(android.R.id.content);
-    assertNotNull(findText(root,"Notifications de blocage désactivées dans l’application. Les appels restent filtrés."));
-    Switch toggle=findSwitch(root,"Afficher les appels bloqués en notification");
-    assertNotNull(toggle);assertFalse(toggle.isChecked());
+    boolean active=prefs.getBoolean("enabled",true) && activity.getSystemService(android.app.role.RoleManager.class).isRoleHeld(android.app.role.RoleManager.ROLE_CALL_SCREENING);
+    assertNotNull(findText(root,active?"Notifications de blocage désactivées dans l’application. Les appels restent filtrés.":"Notifications suspendues : la protection est inactive. Votre préférence est conservée."));
+    Switch toggle=findSwitch(root,"Notifications des appels bloqués");
+    assertNotNull(toggle);assertFalse(toggle.isChecked());assertEquals(active,toggle.isEnabled());
    });
   }finally{prefs.edit().putBoolean("notifications",previous).commit();}
  }
@@ -52,13 +53,13 @@ public class NotificationSettingsIntegrationTest {
   prefs.edit().putBoolean("notifications",false).commit();
   try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
    scenario.onActivity(activity->{
-    Switch toggle=findSwitch(activity.findViewById(android.R.id.content),"Afficher les appels bloqués en notification");
+    Switch toggle=findSwitch(activity.findViewById(android.R.id.content),"Notifications des appels bloqués");
     assertNotNull(toggle);toggle.setChecked(true);
     assertTrue(prefs.getBoolean("notifications",false));
    });
    scenario.recreate();
    scenario.onActivity(activity->{
-    Switch toggle=findSwitch(activity.findViewById(android.R.id.content),"Afficher les appels bloqués en notification");
+    Switch toggle=findSwitch(activity.findViewById(android.R.id.content),"Notifications des appels bloqués");
     assertNotNull(toggle);assertTrue(toggle.isChecked());
    });
   }finally{prefs.edit().putBoolean("notifications",previous).commit();}
