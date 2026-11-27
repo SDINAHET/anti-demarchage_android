@@ -40,27 +40,28 @@ public class ScreeningUiIntegrationTest {
     assertNotNull(findText(root,"AntiDémarchage"));
     assertNotNull(findText(root,"France métropolitaine"));
     assertNotNull(findText(root,"Outre-mer"));
-    assertNotNull(findSwitch(root,"Protection automatique"));
+    assertNotNull(findText(root,"DÉSACTIVER LA PROTECTION")!=null?findText(root,"DÉSACTIVER LA PROTECTION"):findText(root,"ACTIVER LA PROTECTION"));
     assertNotNull(findSwitch(root,"Afficher les appels bloqués en notification"));
    });
   }
  }
- @Test public void togglesPersistAfterActivityRecreation(){
-  Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();
-  SharedPreferences p=c.getSharedPreferences("filter",Context.MODE_PRIVATE);
-  boolean old=p.getBoolean("enabled",true);
+ @Test public void mainButtonPersistsAfterActivityRecreation(){
+  Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
+  SharedPreferences prefs=context.getSharedPreferences("filter",Context.MODE_PRIVATE);
+  boolean old=prefs.getBoolean("enabled",true);
   try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
-   scenario.onActivity(a->{
-    Switch s=findSwitch(a.findViewById(android.R.id.content),"Protection automatique");
-    assertNotNull(s);s.setChecked(!old);
-    assertEquals(!old,p.getBoolean("enabled",old));
+   scenario.onActivity(activity->{
+    View root=activity.findViewById(android.R.id.content);
+    TextView button=findText(root,old?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION");
+    assertNotNull(button);button.performClick();
+    assertEquals(!old,prefs.getBoolean("enabled",old));
    });
    scenario.recreate();
-   scenario.onActivity(a->{
-    Switch s=findSwitch(a.findViewById(android.R.id.content),"Protection automatique");
-    assertNotNull(s);assertEquals(!old,s.isChecked());
+   scenario.onActivity(activity->{
+    View root=activity.findViewById(android.R.id.content);
+    assertNotNull(findText(root,!old?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION"));
    });
-  }finally{p.edit().putBoolean("enabled",old).commit();}
+  }finally{prefs.edit().putBoolean("enabled",old).commit();}
  }
  @Test public void prefixGroupsExpandAndShowSwitches(){
   try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
