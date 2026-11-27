@@ -47,8 +47,8 @@ public class MainActivity extends Activity {
   TextView name=text(label,15,INK,false);row.addView(name,new LinearLayout.LayoutParams(0,-2,1));
   Switch s=new Switch(this);
   s.setChecked(prefs.getBoolean(key,true));
-  s.setContentDescription(label);s.setOnCheckedChangeListener((v,checked)->{
-   prefs.edit().putBoolean(key,checked).apply();refresh();
+  s.setText(s.isChecked()?"Activé":"Désactivé");s.setContentDescription(label);s.setOnCheckedChangeListener((v,checked)->{
+   s.setText(checked?"Activé":"Désactivé");prefs.edit().putBoolean(key,checked).apply();refresh();
   });
   row.addView(s);parent.addView(row,new LinearLayout.LayoutParams(-1,-2));return s;
  }
@@ -117,7 +117,7 @@ public class MainActivity extends Activity {
    else new AlertDialog.Builder(this).setMessage("Le rôle de filtrage n'est pas disponible sur cet appareil.").setPositiveButton("OK",null).show();
   });
   permissions.addView(roleButton);
-  LinearLayout settings=card();settings.addView(text("Protection",17,INK,true));gap(settings,6);
+  LinearLayout settings=card();settings.addView(text("Notifications",17,INK,true));gap(settings,6);
   notificationSwitch=switchRow(settings,"Notifications des appels bloqués","notifications");
   notificationDetail=text("",12,MUTED,false);settings.addView(notificationDetail);
   gap(settings,8);
@@ -125,6 +125,11 @@ public class MainActivity extends Activity {
   notificationButton.setPadding(dp(12),dp(15),dp(12),dp(15));notificationButton.setBackground(shape(0xFFF3F4F6,12));
   notificationButton.setOnClickListener(v->openNotificationSettings());
   settings.addView(notificationButton);
+  LinearLayout lists=card();lists.addView(text("Listes personnalisées",17,INK,true));
+  switchRow(lists,"Liste noire","blacklist_enabled");
+  button(lists,"Gérer la liste noire",()->manageList(false));
+  button(lists,"Gérer la liste blanche",()->manageList(true));
+  lists.addView(text("Les numéros protégés et la liste blanche restent prioritaires.",12,MUTED,false));
   root.addView(text("PRÉFIXES FILTRÉS",12,MUTED,true));gap(root,8);
   root.addView(text("Chaque préfixe peut être activé séparément. Certains appels légitimes peuvent être concernés.",13,MUTED,false));gap(root,12);
   prefixSection("France métropolitaine","12 préfixes",0,12);
@@ -139,6 +144,33 @@ public class MainActivity extends Activity {
   shortcutButton.setPadding(dp(12),dp(15),dp(12),dp(15));shortcutButton.setBackground(shape(0xFFF3F4F6,12));
   shortcutButton.setOnClickListener(v->alias(true));advanced.addView(shortcutButton);
   refresh();
+ }
+ private void manageList(boolean white){
+  String prefix=white?"white:":"black:";
+  LinearLayout panel=vertical();panel.setPadding(dp(16),dp(8),dp(16),dp(8));
+  EditText input=new EditText(this);input.setHint("Numéro de téléphone");input.setInputType(android.text.InputType.TYPE_CLASS_PHONE);panel.addView(input);
+  LinearLayout entries=vertical();ScrollView scroll=new ScrollView(this);scroll.addView(entries);
+  Runnable render=()->{
+   entries.removeAllViews();
+   java.util.TreeSet<String> keys=new java.util.TreeSet<>(prefs.getAll().keySet());
+   for(String key:keys)if(key.startsWith(prefix)){
+    LinearLayout row=vertical();
+    Switch sw=switchRow(row,key.substring(prefix.length()),key);
+    sw.setText(sw.isChecked()?"Activé":"Désactivé");
+    sw.setOnCheckedChangeListener((v,on)->{prefs.edit().putBoolean(key,on).apply();sw.setText(on?"Activé":"Désactivé");});
+    button(row,"Supprimer "+key.substring(prefix.length()),()->{prefs.edit().remove(key).apply();entries.removeView(row);});
+    entries.addView(row);
+   }
+  };
+  button(panel,"Ajouter",()->{
+   String raw=input.getText().toString();String n=PrefixFilter.normalize(raw);
+   if(!white&&ProtectedNumbers.contains(raw)){input.setError("Numéro protégé : ajout interdit");return;}
+   if(n.isEmpty()){input.setError("Numéro français invalide");return;}
+   if(prefs.contains(prefix+n)){input.setError("Numéro déjà enregistré");return;}
+   prefs.edit().putBoolean(prefix+n,true).apply();input.setText("");render.run();
+  });
+  panel.addView(scroll,new LinearLayout.LayoutParams(-1,dp(280)));render.run();
+  new AlertDialog.Builder(this).setTitle(white?"Liste blanche personnelle":"Liste noire personnelle").setView(panel).setPositiveButton("Fermer",null).show();
  }
  private boolean shortcutVisible(){
   int state=getPackageManager().getComponentEnabledSetting(new ComponentName(this,getPackageName()+".Launcher"));
@@ -188,7 +220,7 @@ public class MainActivity extends Activity {
   boolean enabled=prefs.getBoolean("enabled",true);
   protectionTitle.setText(!enabled?"Protection désactivée":granted?"Protection active":"Protection non autorisée");
   protectionTitle.setTextColor(granted&&enabled?0xFF237B49:0xFF9A4A08);
-  protectionDetail.setText(!enabled?"Vos appels ne sont plus filtrés par cette application.":!granted?"Autorisez le filtrage dans Android pour activer la protection.":"Les appels correspondant aux préfixes activés sont bloqués.");
+  protectionDetail.setText(!enabled?"Vos appels ne sont plus filtrés par cette application.":!granted?"Autorisez le filtrage dans Android pour activer la protection.":"Les préfixes et la liste noire activés sont filtrés.");
   roleButton.setText(granted?"✓ Rôle de filtrage autorisé — détails":"Activer le rôle de filtrage");
   boolean systemNotifications=notificationsAllowed();
   boolean appNotifications=prefs.getBoolean("notifications",true);
