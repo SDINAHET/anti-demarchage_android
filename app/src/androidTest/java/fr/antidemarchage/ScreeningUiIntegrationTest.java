@@ -69,9 +69,8 @@ public class ScreeningUiIntegrationTest {
     TextView metro=findText(root,"France métropolitaine");
     TextView overseas=findText(root,"Outre-mer");
     assertNotNull(metro);assertNotNull(overseas);
-    ((View)metro.getParent()).getParent();
-    ((View)metro.getParent()).performClick();
-    ((View)overseas.getParent()).performClick();
+    ((View)metro.getParent().getParent()).performClick();
+    ((View)overseas.getParent().getParent()).performClick();
     for(String prefix:PrefixFilter.PREFIXES)
      assertNotNull(prefix,findSwitch(root,prefix.substring(0,2)+" "+prefix.substring(2)));
    });
