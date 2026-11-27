@@ -17,6 +17,7 @@ public class MainActivity extends Activity {
  private RoleManager roles;
  private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton, notificationDetail, mainToggleButton;
  private LinearLayout root;
+ private Switch notificationSwitch;
  private final int ORANGE=Color.rgb(237,111,19), INK=Color.rgb(35,40,47), MUTED=Color.rgb(101,109,119);
  private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+0.5f);}
  private GradientDrawable shape(int color,int radius){
@@ -96,9 +97,11 @@ public class MainActivity extends Activity {
   mainToggleButton.setMinHeight(dp(54));
   mainToggleButton.setPadding(dp(16),dp(15),dp(16),dp(15));
   mainToggleButton.setOnClickListener(v->{
-   boolean next=!prefs.getBoolean("enabled",true);
-   prefs.edit().putBoolean("enabled",next).apply();
-   refresh();
+   if(prefs.getBoolean("enabled",true)){
+    new AlertDialog.Builder(this).setTitle("Désactiver la protection ?")
+     .setMessage("Les appels de démarchage ne seront plus bloqués par cette application. Vos réglages seront conservés.")
+     .setNegativeButton("Annuler",null).setPositiveButton("Désactiver",(dialog,which)->{prefs.edit().putBoolean("enabled",false).apply();refresh();}).show();
+   }else{prefs.edit().putBoolean("enabled",true).apply();refresh();}
   });
   overview.addView(mainToggleButton,new LinearLayout.LayoutParams(-1,-2));
   LinearLayout permissions=card();permissions.addView(text("Autorisations Android",17,INK,true));gap(permissions,8);
@@ -113,7 +116,7 @@ public class MainActivity extends Activity {
   });
   permissions.addView(roleButton);
   LinearLayout settings=card();settings.addView(text("Protection",17,INK,true));gap(settings,6);
-  switchRow(settings,"Afficher les appels bloqués en notification","notifications");
+  notificationSwitch=switchRow(settings,"Notifications des appels bloqués","notifications");
   notificationDetail=text("",12,MUTED,false);settings.addView(notificationDetail);
   gap(settings,8);
   notificationButton=text("",14,INK,true);notificationButton.setGravity(Gravity.CENTER);
@@ -181,18 +184,21 @@ public class MainActivity extends Activity {
   if(protectionTitle==null)return;
   boolean granted=roles!=null&&roles.isRoleHeld(RoleManager.ROLE_CALL_SCREENING);
   boolean enabled=prefs.getBoolean("enabled",true);
-  protectionTitle.setText(granted&&enabled?"Protection active":"Protection inactive");
-  protectionDetail.setText(!granted?"Autorisation de filtrage Android nécessaire":enabled?"Filtrage des appels entrants autorisé":"Protection désactivée dans l'application");
+  protectionTitle.setText(!enabled?"Protection désactivée":granted?"Protection active":"Protection non autorisée");
+  protectionTitle.setTextColor(granted&&enabled?0xFF237B49:0xFF9A4A08);
+  protectionDetail.setText(!enabled?"Vos appels ne sont plus filtrés par cette application.":!granted?"Autorisez le filtrage dans Android pour activer la protection.":"Les appels correspondant aux préfixes activés sont bloqués.");
   roleButton.setText(granted?"✓ Rôle de filtrage autorisé — détails":"Activer le rôle de filtrage");
   boolean systemNotifications=notificationsAllowed();
   boolean appNotifications=prefs.getBoolean("notifications",true);
   if(notificationButton!=null)notificationButton.setText(systemNotifications?"✓ Autorisation Android accordée — réglages":"Autoriser les notifications dans Android");
-  if(notificationDetail!=null)notificationDetail.setText(!appNotifications?"Notifications de blocage désactivées dans l’application. Les appels restent filtrés.":!systemNotifications?"Notifications de blocage activées dans l’application, mais bloquées par Android.":"Notifications de blocage activées et autorisées par Android (sans son ni vibration).");
+  if(notificationSwitch!=null){notificationSwitch.setEnabled(enabled&&granted);notificationSwitch.setAlpha(enabled&&granted?1f:0.5f);}
+  if(notificationDetail!=null)notificationDetail.setText(!enabled||!granted?"Notifications suspendues : la protection est inactive. Votre préférence est conservée.":!appNotifications?"Notifications de blocage désactivées dans l’application. Les appels restent filtrés.":!systemNotifications?"Notifications de blocage activées dans l’application, mais bloquées par Android.":"Notifications de blocage activées et autorisées par Android (sans son ni vibration).");
   if(shortcutButton!=null)shortcutButton.setText(shortcutVisible()?"✓ Raccourci activé — vérifier":"Afficher le raccourci");
   if(mainToggleButton!=null){
    mainToggleButton.setText(enabled?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION");
    mainToggleButton.setBackground(shape(enabled?0xFF414B57:0xFF237B49,14));
    mainToggleButton.setContentDescription(enabled?"Désactiver le filtrage des appels":"Activer le filtrage des appels");
+   mainToggleButton.setFocusable(true);
   }
   countText.setText(String.valueOf(prefs.getInt("count",0)));
   int n=0;for(String p:PrefixFilter.PREFIXES)if(prefs.getBoolean(p,true))n++;
