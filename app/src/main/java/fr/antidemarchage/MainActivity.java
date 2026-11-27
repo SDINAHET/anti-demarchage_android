@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
   prefs=getSharedPreferences("filter",MODE_PRIVATE);roles=getSystemService(RoleManager.class);
   getWindow().setStatusBarColor(0xFFF7F8FA);getWindow().setNavigationBarColor(0xFFF7F8FA);
   getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-  ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);
+  ScrollView scroll=new ScrollView(this);scroll.setFitsSystemWindows(true);scroll.setClipToPadding(false);scroll.setFillViewport(true);
   root=vertical();root.setPadding(dp(18),dp(12),dp(18),dp(20));root.setBackgroundColor(0xFFF7F8FA);
   scroll.addView(root);setContentView(scroll);
   LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
