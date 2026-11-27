@@ -15,7 +15,7 @@ import android.widget.*;
 public class MainActivity extends Activity {
  private SharedPreferences prefs;
  private RoleManager roles;
- private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton, notificationDetail;
+ private TextView protectionTitle, protectionDetail, countText, prefixCount, roleButton, notificationButton, shortcutButton, notificationDetail, mainToggleButton;
  private LinearLayout root;
  private final int ORANGE=Color.rgb(237,111,19), INK=Color.rgb(35,40,47), MUTED=Color.rgb(101,109,119);
  private int dp(float v){return (int)(v*getResources().getDisplayMetrics().density+0.5f);}
@@ -90,6 +90,17 @@ public class MainActivity extends Activity {
   countText=text("",27,ORANGE,true);overview.addView(countText);
   overview.addView(text("appels bloqués depuis l'installation",12,MUTED,false));gap(overview,12);
   prefixCount=text("",13,MUTED,true);overview.addView(prefixCount);
+  gap(overview,14);
+  mainToggleButton=text("",17,Color.WHITE,true);
+  mainToggleButton.setGravity(Gravity.CENTER);
+  mainToggleButton.setMinHeight(dp(54));
+  mainToggleButton.setPadding(dp(16),dp(15),dp(16),dp(15));
+  mainToggleButton.setOnClickListener(v->{
+   boolean next=!prefs.getBoolean("enabled",true);
+   prefs.edit().putBoolean("enabled",next).apply();
+   refresh();
+  });
+  overview.addView(mainToggleButton,new LinearLayout.LayoutParams(-1,-2));
   LinearLayout permissions=card();permissions.addView(text("Autorisations Android",17,INK,true));gap(permissions,8);
   roleButton=text("",14,Color.WHITE,true);roleButton.setGravity(Gravity.CENTER);
   roleButton.setPadding(dp(12),dp(14),dp(12),dp(14));roleButton.setBackground(shape(ORANGE,12));
@@ -102,7 +113,6 @@ public class MainActivity extends Activity {
   });
   permissions.addView(roleButton);
   LinearLayout settings=card();settings.addView(text("Protection",17,INK,true));gap(settings,6);
-  switchRow(settings,"Protection automatique","enabled");
   switchRow(settings,"Afficher les appels bloqués en notification","notifications");
   notificationDetail=text("",12,MUTED,false);settings.addView(notificationDetail);
   gap(settings,8);
@@ -179,6 +189,11 @@ public class MainActivity extends Activity {
   if(notificationButton!=null)notificationButton.setText(systemNotifications?"✓ Autorisation Android accordée — réglages":"Autoriser les notifications dans Android");
   if(notificationDetail!=null)notificationDetail.setText(!appNotifications?"Notifications de blocage désactivées dans l’application. Les appels restent filtrés.":!systemNotifications?"Notifications de blocage activées dans l’application, mais bloquées par Android.":"Notifications de blocage activées et autorisées par Android (sans son ni vibration).");
   if(shortcutButton!=null)shortcutButton.setText(shortcutVisible()?"✓ Raccourci activé — vérifier":"Afficher le raccourci");
+  if(mainToggleButton!=null){
+   mainToggleButton.setText(enabled?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION");
+   mainToggleButton.setBackground(shape(enabled?0xFF414B57:0xFF237B49,14));
+   mainToggleButton.setContentDescription(enabled?"Désactiver le filtrage des appels":"Activer le filtrage des appels");
+  }
   countText.setText(String.valueOf(prefs.getInt("count",0)));
   int n=0;for(String p:PrefixFilter.PREFIXES)if(prefs.getBoolean(p,true))n++;
   prefixCount.setText(n+" / "+PrefixFilter.PREFIXES.size()+" préfixes activés");
