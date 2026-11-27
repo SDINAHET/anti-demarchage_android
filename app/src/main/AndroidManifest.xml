@@ -2,6 +2,7 @@
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 <application android:label="Dinahet AntiDémarchage" android:allowBackup="false" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:icon="@drawable/shield">
 <activity android:name=".MainActivity" android:exported="true"/>
+<activity android:name=".SimulatorActivity" android:exported="false"/>
 <activity-alias android:name=".Launcher" android:targetActivity=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
 <service android:name=".AntiSpamService" android:permission="android.permission.BIND_SCREENING_SERVICE" android:exported="true"><intent-filter><action android:name="android.telecom.CallScreeningService"/></intent-filter></service>
 </application></manifest>
