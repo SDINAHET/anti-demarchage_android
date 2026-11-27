@@ -49,26 +49,38 @@ public class ScreeningUiIntegrationTest {
   Context context=InstrumentationRegistry.getInstrumentation().getTargetContext();
   SharedPreferences prefs=context.getSharedPreferences("filter",Context.MODE_PRIVATE);
   boolean old=prefs.getBoolean("enabled",true);
+  prefs.edit().putBoolean("enabled",true).commit();
   try(ActivityScenario<MainActivity> scenario=ActivityScenario.launch(MainActivity.class)){
    scenario.onActivity(activity->{
     View root=activity.findViewById(android.R.id.content);
-    TextView button=findText(root,old?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION");
+    TextView button=findText(root,"DÉSACTIVER LA PROTECTION");
     assertNotNull(button);button.performClick();
-    if(old)assertTrue(prefs.getBoolean("enabled",true));
+    assertTrue(prefs.getBoolean("enabled",true));
    });
-   if(old){
-    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Annuler")).perform(androidx.test.espresso.action.ViewActions.click());
+   {
+    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Annuler")).perform(new androidx.test.espresso.ViewAction(){
+     public org.hamcrest.Matcher<View> getConstraints(){return androidx.test.espresso.matcher.ViewMatchers.isDisplayed();}
+     public String getDescription(){return "Invoke dialog button without input injection";}
+     public void perform(androidx.test.espresso.UiController controller,View view){assertTrue(view.performClick());controller.loopMainThreadUntilIdle();}
+    });
     assertTrue(prefs.getBoolean("enabled",true));
     scenario.onActivity(activity->findText(activity.findViewById(android.R.id.content),"DÉSACTIVER LA PROTECTION").performClick());
-    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Désactiver")).perform(androidx.test.espresso.action.ViewActions.click());
+    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Désactiver")).perform(new androidx.test.espresso.ViewAction(){
+     public org.hamcrest.Matcher<View> getConstraints(){return androidx.test.espresso.matcher.ViewMatchers.isDisplayed();}
+     public String getDescription(){return "Invoke dialog button without input injection";}
+     public void perform(androidx.test.espresso.UiController controller,View view){assertTrue(view.performClick());controller.loopMainThreadUntilIdle();}
+    });
    }
    scenario.onActivity(activity->{
-    assertEquals(!old,prefs.getBoolean("enabled",old));
+    assertFalse(prefs.getBoolean("enabled",true));
    });
    scenario.recreate();
    scenario.onActivity(activity->{
     View root=activity.findViewById(android.R.id.content);
-    assertNotNull(findText(root,!old?"DÉSACTIVER LA PROTECTION":"ACTIVER LA PROTECTION"));
+    assertNotNull(findText(root,"ACTIVER LA PROTECTION"));
+    assertFalse(findSwitch(root,"Notifications des appels bloqués").isEnabled());
+    findText(root,"ACTIVER LA PROTECTION").performClick();
+    assertTrue(prefs.getBoolean("enabled",false));
    });
   }finally{prefs.edit().putBoolean("enabled",old).commit();}
  }
