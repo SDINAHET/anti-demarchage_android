@@ -58,18 +58,12 @@ public class ScreeningUiIntegrationTest {
     assertTrue(prefs.getBoolean("enabled",true));
    });
    {
-    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Annuler")).perform(new androidx.test.espresso.ViewAction(){
-     public org.hamcrest.Matcher<View> getConstraints(){return androidx.test.espresso.matcher.ViewMatchers.isDisplayed();}
-     public String getDescription(){return "Invoke dialog button without input injection";}
-     public void perform(androidx.test.espresso.UiController controller,View view){assertTrue(view.performClick());controller.loopMainThreadUntilIdle();}
-    });
+    scenario.onActivity(activity->{assertNotNull(activity.getProtectionDialog());assertTrue(activity.getProtectionDialog().isShowing());activity.getProtectionDialog().getButton(android.content.DialogInterface.BUTTON_NEGATIVE).performClick();});
+    InstrumentationRegistry.getInstrumentation().waitForIdleSync();
     assertTrue(prefs.getBoolean("enabled",true));
     scenario.onActivity(activity->findText(activity.findViewById(android.R.id.content),"DÉSACTIVER LA PROTECTION").performClick());
-    androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText("Désactiver")).perform(new androidx.test.espresso.ViewAction(){
-     public org.hamcrest.Matcher<View> getConstraints(){return androidx.test.espresso.matcher.ViewMatchers.isDisplayed();}
-     public String getDescription(){return "Invoke dialog button without input injection";}
-     public void perform(androidx.test.espresso.UiController controller,View view){assertTrue(view.performClick());controller.loopMainThreadUntilIdle();}
-    });
+    scenario.onActivity(activity->{assertTrue(activity.getProtectionDialog().isShowing());activity.getProtectionDialog().getButton(android.content.DialogInterface.BUTTON_POSITIVE).performClick();});
+    InstrumentationRegistry.getInstrumentation().waitForIdleSync();
    }
    scenario.onActivity(activity->{
     assertFalse(prefs.getBoolean("enabled",true));
